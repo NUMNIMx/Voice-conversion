@@ -15,11 +15,11 @@ pattern = re.compile(r'^[\.a-zA-Z0-9_\/]+$')
 def get_wav_duration(file_path):
     try:
         with wave.open(file_path, 'rb') as wav_file:
-            # 获取音频帧数
+            
             n_frames = wav_file.getnframes()
-            # 获取采样率
+            
             framerate = wav_file.getframerate()
-            # 计算时长（秒）
+            
             return n_frames / float(framerate)
     except Exception as e:
         logger.error(f"Reading {file_path}")
