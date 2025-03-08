@@ -12,11 +12,11 @@ def convert_mp3_to_wav(mp3_file, wav_path):
     audio.export(wav_path, format="wav")
     return wav_path
 
-# ตัวอย่างโมเดล PyTorch (placeholder)
+# ตัวอย่างโมเดล PyTorch (ปรับตามโมเดลจริงของคุณ)
 class SimpleVoiceModel(nn.Module):
     def __init__(self):
         super(SimpleVoiceModel, self).__init__()
-        self.fc1 = nn.Linear(13, 128)  # สมมติ input เป็น MFCC 13 features
+        self.fc1 = nn.Linear(13, 128)
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 32)
 
@@ -29,26 +29,23 @@ class SimpleVoiceModel(nn.Module):
 # ฟังก์ชันเทรนโมเดล (placeholder)
 def train_model(audio_a_path):
     audio_a, sr = librosa.load(audio_a_path, sr=None)
-    # สมมติว่าเทรนโมเดล (ที่นี่เป็นตัวอย่างง่าย ๆ)
     model = SimpleVoiceModel()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    # ตัวอย่างการเทรน (เพิ่มโค้ดจริงตามโมเดลของคุณ)
-    # บันทึกโมเดลเป็น .pth
     torch.save(model.state_dict(), "trained_model.pth")
     return model
 
-# ฟังก์ชันโหลดโมเดลจากไฟล์ .pth
+# ฟังก์ชันโหลดโมเดลจาก .pth
 def load_model(model_file):
-    model = SimpleVoiceModel()  # ต้องกำหนดโครงสร้างโมเดลให้ตรงกับที่บันทึก
+    model = SimpleVoiceModel()  # ปรับตามโมเดลจริง
     model.load_state_dict(torch.load(model_file.name, map_location=torch.device('cpu')))
-    model.eval()  # ตั้งค่าเป็นโหมด evaluation
+    model.eval()
     return model
 
 # ฟังก์ชันใช้งานโมเดล (placeholder)
 def use_model(model, audio_b_path, audio_a_path):
     audio_b, sr_b = librosa.load(audio_b_path, sr=None)
     audio_a, sr_a = librosa.load(audio_a_path, sr=None)
-    # สมมติว่าใช้โมเดลสร้างผลลัพธ์ (ปรับตามโมเดลจริง)
+    # ปรับตามโมเดลจริงของคุณ
     generated_audio = audio_a  # Placeholder
     return generated_audio, sr_a
 
@@ -85,6 +82,14 @@ elif mode == "Use Existing Model":
         st.success("โหลดโมเดลสำเร็จ!")
     else:
         st.warning("กรุณาอัปโหลดไฟล์โมเดล")
+    
+    # เพิ่มช่องอัปโหลดไฟล์ A
+    audio_a_file = st.file_uploader("อัปโหลดไฟล์เสียงของ A (MP3) เพื่อใช้กับโมเดล", type=["mp3"], key="existing_a")
+    if audio_a_file:
+        audio_a_path = convert_mp3_to_wav(audio_a_file, "audio_a_existing.wav")
+        st.success("อัปโหลดไฟล์ A สำเร็จ!")
+    else:
+        audio_a_path = None
 
 # อัปโหลดไฟล์ B (ใช้ได้ทั้งสองโหมด)
 audio_b_file = st.file_uploader("อัปโหลดไฟล์เสียงของ B (MP3)", type=["mp3"], key="audio_b")
@@ -95,10 +100,9 @@ if audio_b_file:
 # ปุ่มสร้างผลลัพธ์
 if st.button("Generate Cloned Voice"):
     if audio_b_file and "model" in st.session_state:
-        if mode == "Train Model" and not audio_a_file:
-            st.error("กรุณาอัปโหลดไฟล์ A เพื่อใช้ในโหมด Train Model")
+        if not audio_a_path:
+            st.error("กรุณาอัปโหลดไฟล์ A เพื่อใช้กับโมเดล")
         else:
-            audio_a_path = audio_a_path if mode == "Train Model" else None
             generated_audio, sr = use_model(st.session_state["model"], audio_b_path, audio_a_path)
             sf.write("generated_audio.wav", generated_audio, sr)
             st.audio("generated_audio.wav")
